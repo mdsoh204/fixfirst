@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Medical AI Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #202124;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        .header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            background: white;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e90ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #888;
+            font-size: 14px;
+            margin-right: 15px;
+            transition: 0.2s;
+        }
+
+        .logo a:hover {
+            color: #333;
+        }
+
+        .profile-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .welcome-screen h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .welcome-screen h1 span {
+            color: #1e90ff;
+        }
+
+        .suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .suggestion-card {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .suggestion-card:hover {
+            background: #eef1f8;
+            border-color: #1e90ff;
+            color: #1e90ff;
+        }
+
+        /* Chat Log */
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: none;
+            /* hidden until chat starts */
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 15px 22px;
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-bubble {
+            background: #1e90ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-bubble {
+            background: #f1f3f4;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .input-container {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 30px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .input-container:focus-within {
+            border-color: #1e90ff;
+            box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.1);
+            background: white;
+        }
+
+        .input-container input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 16px;
+            padding: 10px;
+            background: transparent;
+        }
+
+        .action-btn {
+            background: #1e90ff;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .action-btn.review-toggle {
+            background: #e9ecef;
+            color: #555;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .disclaimer {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        /* Category Panel (Hidden by Default) */
+        .category-panel {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 240px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            border: 1px solid #eee;
+        }
+
+        .category-btn {
+            padding: 10px 14px;
+            text-align: left;
+            border: 1px solid #eee;
+            background: #fafafa;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #444;
+            transition: 0.2s;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .category-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .category-btn.active {
+            background: #e0f2fe;
+            border-color: #38bdf8;
+            color: #0284c7;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <a href="index.html">&larr; Home</a>
+                🩺 Medical Assistant
+            </div>
+            <div class="profile-area" id="auth-ui">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Welcome View -->
+        <div id="welcomeScreen" class="welcome-screen">
+            <h1>Hi <span id="welcome-name" style="color:#333;">Guest</span>, <span>how can I help?</span>
+            </h1>
+            <p style="color: #666; font-size: 18px;">I can provide medical insights, symptom analysis, and wellness
+                guidance.</p>
+
+            <div class="suggestions">
+                <div class="suggestion-card">🤒 Fever symptoms & treatments</div>
+                <div class="suggestion-card">🤕 Common headache causes</div>
+                <div class="suggestion-card">💊 How to track medicine dosages</div>
+                <div class="suggestion-card">🩺 What to expect in a general checkup</div>
+            </div>
+        </div>
+
+        <!-- Active Chat Area -->
+        <div id="chatLog" class="chat-log"></div>
+
+        <!-- Category Selector Panel (Hidden by Default) -->
+        <div id="categoryPanel" class="category-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 14px; color: #555; font-weight: 600;">Select Issue Category</h3>
+                <button onclick="toggleCategoryPanel()"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: #888;">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <button class="category-btn active" onclick="selectChatCategory(this, 'General Medical')">General
+                    Medical</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Heart / Cardiology')">Heart /
+                    Cardiology</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Lungs / Pulmonology')">Lungs /
+                    Pulmonology</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Bones / Orthopedics')">Bones /
+                    Orthopedics</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Brain / Neurology')">Brain /
+                    Neurology</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Skin / Dermatology')">Skin /
+                    Dermatology</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Stomach / Gastroenterology')">Stomach /
+                    Gastroenterology</button>
+                <button class="category-btn" onclick="selectChatCategory(this, 'Blood / Hematology')">Blood /
+                    Hematology</button>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" id="userInput" placeholder="Ask a medical question...">
+                <button onclick="toggleCategoryPanel()" class="action-btn review-toggle"
+                    title="Select Category">^</button>
+                <button id="sendBtn" class="action-btn" title="Send">&rarr;</button>
+            </div>
+            <div class="disclaimer">
+                ⚠ This AI tool is for educational purposes only. Please consult a doctor for definitive medical advice.
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentChatCategoryName = 'General Medical';
+
+        // Toggle Category Panel
+        function toggleCategoryPanel() {
+            const panel = document.getElementById('categoryPanel');
+            if (panel) {
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // Select Category Function
+        function selectChatCategory(btn, categoryName) {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentChatCategoryName = categoryName;
+
+            const input = document.getElementById('userInput');
+            if (categoryName === 'General Medical') {
+                input.placeholder = `Ask a medical question...`;
+            } else {
+                input.placeholder = `Ask about ${categoryName}...`;
+            }
+
+            // Focus back on input
+            input.focus();
+            toggleCategoryPanel();
+        }
+
+        // Toggle Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('lpProfileDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (e) {
+            const profileMenu = document.querySelector('.profile-menu');
+            const dropdown = document.getElementById('lpProfileDropdown');
+            if (profileMenu && !profileMenu.contains(e.target) && dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+
+
+        // Functional Chat AI Logic
+        const sendBtn = document.getElementById('sendBtn');
+        const userInput = document.getElementById('userInput');
+        const chatLog = document.getElementById('chatLog');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+
+        // Formats Markdown bold to HTML bold simply
+        function formatMarkdown(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        }
+
+        async function sendMessage(queryText = null) {
+            const text = queryText || userInput.value.trim();
+            if (!text) return;
+
+            // Hide Welcome, Show Chat Log
+            welcomeScreen.style.display = 'none';
+            chatLog.style.display = 'flex';
+
+            // Add User Bubble
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble user-bubble';
+            userBubble.innerText = text;
+            chatLog.appendChild(userBubble);
+
+            userInput.value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // Add Loading Bubble
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'chat-bubble ai-bubble';
+            loadingBubble.innerHTML = '<em>Consulting AI model...</em>';
+            chatLog.appendChild(loadingBubble);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // Fetch AI Response
+            try {
+                let queryToSend = text;
+                if (currentChatCategoryName !== 'General Medical') {
+                    queryToSend = `[Context: Patient issue related to ${currentChatCategoryName}] ${text}`;
+                }
+
+                const res = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: queryToSend, category: 'medical', subCategory: currentChatCategoryName })
+                });
+                const data = await res.json();
+
+                chatLog.removeChild(loadingBubble);
+
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-bubble ai-bubble';
+                if (res.ok && data.success) {
+                    aiBubble.innerHTML = formatMarkdown(data.ai_answer);
+
+                    if (data.reviews && data.reviews.length > 0) {
+                        const reviewsWrapper = document.createElement('div');
+                        reviewsWrapper.style.marginTop = '20px';
+                        reviewsWrapper.style.borderTop = '1px solid #ddd';
+                        reviewsWrapper.style.paddingTop = '15px';
+
+                        const title = document.createElement('h4');
+                        title.innerText = 'Community Insights on this topic:';
+                        title.style.fontSize = '14px';
+                        title.style.color = '#555';
+                        title.style.marginBottom = '12px';
+                        reviewsWrapper.appendChild(title);
+
+                        const chartsToRender = [];
+
+                        const renderReview = (r, container, insertBeforeNode = null) => {
+                            const rb = document.createElement('div');
+                            rb.style.background = 'white';
+                            rb.style.border = '1px solid #eee';
+                            rb.style.borderRadius = '12px';
+                            rb.style.padding = '15px';
+                            rb.style.marginBottom = '10px';
+                            rb.style.boxShadow = '0 2px 5px rgba(0,0,0,0.03)';
+
+                            const d = new Date(r.createdAt);
+                            const diff = new Date() - d;
+                            const days = Math.floor(diff / 86400000);
+                            const hours = Math.floor(diff / 3600000);
+                            const mins = Math.floor(diff / 60000);
+                            const timeStr = days > 0 ? `${days}d ago` : (hours > 0 ? `${hours}h ago` : (mins > 0 ? `${mins}m ago` : 'Just now'));
+
+                            const ageStr = r.author_age && r.author_age !== 'Unknown' ? `, Age ${r.author_age}` : '';
+                            const roleBadge = r.author_role === 'Doctor' ? '<span style="background:#d1fae5; color:#065f46; font-size:11px; padding:2px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">🩺 Doctor</span>' : '';
+
+                            let statsHtml = '';
+                            let canvasId = '';
+                            if (r.author_gender && r.author_gender !== 'Unknown') {
+                                canvasId = `chart_${r._id}`;
+                                statsHtml = `
+                                    <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:6px;">
+                                        <span style="font-size:11px; padding:3px 8px; background:#e0f2fe; color:#0284c7; border-radius:10px;">🩺 ${r.author_gender}</span>
+                                        <span style="font-size:11px; padding:3px 8px; background:#fee2e2; color:#b91c1c; border-radius:10px;">⚠ Stress: ${r.stress_level}</span>
+                                        <span style="font-size:11px; padding:3px 8px; background:#fef3c7; color:#b45309; border-radius:10px;">❤ Status: ${r.heart_disease_status}</span>
+                                    </div>
+                                    <div style="width:100%; max-width:250px; margin:0 auto;">
+                                        <canvas id="${canvasId}" width="100" height="100"></canvas>
+                                    </div>
+                                `;
+                                chartsToRender.push({
+                                    id: canvasId,
+                                    bp: r.blood_pressure || 0,
+                                    chol: r.cholesterol || 0,
+                                    bmi: Math.round(r.bmi) || 0,
+                                    rendered: false
+                                });
+                            }
+
+                            rb.innerHTML = `
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(r.author_name)}&background=1e90ff&color=fff&rounded=true" style="width:32px; height:32px; border-radius:50%;">
+                                    <div>
+                                        <div style="font-size:13px; font-weight:600; color:#333;">${r.author_name}${ageStr}${roleBadge}</div>
+                                        <div style="font-size:11px; color:#888;">${timeStr}</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:14px; color:#444; line-height:1.4;">${r.content}</div>
+                                ${statsHtml}
+                            `;
+
+                            if (insertBeforeNode) {
+                                container.insertBefore(rb, insertBeforeNode);
+                            } else {
+                                container.appendChild(rb);
+                            }
+                        };
+
+                        const renderCharts = () => {
+                            chartsToRender.forEach(c => {
+                                if (c.rendered) return;
+                                const ctx = document.getElementById(c.id);
+                                if (ctx && window.Chart) {
+                                    new Chart(ctx, {
+                                        type: 'radar',
+                                        data: {
+                                            labels: ['BP', 'Cholesterol', 'BMI'],
+                                            datasets: [{
+                                                label: 'Health Stats',
+                                                data: [c.bp, c.chol, c.bmi],
+                                                backgroundColor: 'rgba(30, 144, 255, 0.2)',
+                                                borderColor: '#1e90ff',
+                                                pointBackgroundColor: '#1e90ff',
+                                                borderWidth: 2
+                                            }]
+                                        },
+                                        options: {
+                                            scales: { r: { suggestedMin: 0, ticks: { display: false } } },
+                                            plugins: { legend: { display: false } }
+                                        }
+                                    });
+                                    c.rendered = true;
+                                }
+                            });
+                        };
+
+                        data.reviews.forEach(r => renderReview(r, reviewsWrapper));
+
+                        if (data.has_more) {
+                            const readMoreBtn = document.createElement('button');
+                            readMoreBtn.innerText = 'Read More Reviews';
+                            readMoreBtn.style.marginTop = '10px';
+                            readMoreBtn.style.padding = '8px 15px';
+                            readMoreBtn.style.background = '#f8f9fa';
+                            readMoreBtn.style.border = '1px solid #ddd';
+                            readMoreBtn.style.borderRadius = '8px';
+                            readMoreBtn.style.cursor = 'pointer';
+
+                            let pageOffset = 1;
+                            readMoreBtn.onclick = async () => {
+                                readMoreBtn.innerText = 'Loading...';
+                                try {
+                                    const res2 = await fetch('/api/search', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ query: queryToSend, category: 'medical', subCategory: currentChatCategoryName, page: pageOffset })
+                                    });
+                                    const data2 = await res2.json();
+
+                                    if (data2.success && data2.reviews && data2.reviews.length > 0) {
+                                        data2.reviews.forEach(r => renderReview(r, reviewsWrapper, readMoreBtn));
+                                        renderCharts();
+                                        pageOffset++;
+                                        if (!data2.has_more) {
+                                            readMoreBtn.style.display = 'none';
+                                        } else {
+                                            readMoreBtn.innerText = 'Read More Reviews';
+                                        }
+                                    } else {
+                                        readMoreBtn.style.display = 'none';
+                                    }
+                                } catch (e) {
+                                    readMoreBtn.innerText = 'Error Loading More';
+                                }
+                            };
+                            reviewsWrapper.appendChild(readMoreBtn);
+                        }
+
+                        aiBubble.appendChild(reviewsWrapper);
+                    }
+                } else {
+                    aiBubble.innerHTML = `<span style="color:red">Error: ${data.error || 'Failed to fetch answer.'}</span>`;
+                }
+                chatLog.appendChild(aiBubble);
+
+                // Render charts after they are in the DOM
+                if (data.reviews && data.reviews.length > 0) {
+                    renderCharts();
+                }
+
+            } catch (e) {
+                chatLog.removeChild(loadingBubble);
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'chat-bubble ai-bubble';
+                errorBubble.innerHTML = `<span style="color:red">Network error: check your connection, or ensure the Flask server is running and the Groq API_KEY is set correctly in .env.</span>`;
+                chatLog.appendChild(errorBubble);
+            }
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', () => sendMessage());
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Hook up suggestion cards
+        document.querySelectorAll('.suggestion-card').forEach(card => {
+            card.addEventListener('click', () => sendMessage(card.innerText));
+        });
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                const authUi = document.getElementById('auth-ui');
+                const welcomeName = document.getElementById('welcome-name');
+
+                if (data.logged_in) {
+                    const firstName = (data.name || 'Guest').split(' ')[0];
+                    if (welcomeName) welcomeName.innerText = firstName;
+                    const avatarSrc = data.profile_pic ? data.profile_pic : `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Guest')}&background=1e90ff&color=fff&rounded=true`;
+                    authUi.innerHTML = `
+                        <div class="profile-menu" style="position: relative;">
+                            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="toggleProfileDropdown()">
+                                <img src="${avatarSrc}" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                <span style="font-weight: 500; font-size: 14px; color: #333;">${firstName}</span>
+                            </div>
+                            <div id="lpProfileDropdown" style="display: none; position: absolute; right: 0; top: 45px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-width: 150px; z-index: 1000; border: 1px solid #eee;">
+                                <a href="/profile" style="display: block; padding: 12px 20px; color: #333; text-decoration: none; font-size: 14px; border-bottom: 1px solid #eee;">Profile</a>
+                                <a href="/api/logout" style="display: block; padding: 12px 20px; color: #e74c3c; text-decoration: none; font-size: 14px;">Logout</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    authUi.innerHTML = `
+                        <a href="/login" style="background: #1e90ff; padding: 6px 15px; border-radius: 20px; text-decoration: none; color: white; font-size: 14px; font-weight: 500;">Sign In</a>
+                    `;
+                }
+            } catch (e) { console.error(e); }
+        });
+    </script>
+</body>
+
+</html>

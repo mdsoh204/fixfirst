@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ScienceHub - Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            background: linear-gradient(45deg, #0e122b, #1e90ff, #0a0a0a, #4a00e0);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            color: #202124;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .logo { font-size: 24px; font-weight: 600; color: #1e90ff; display: flex; align-items: center; gap: 8px; }
+        .logo a { text-decoration: none; color: #888; font-size: 14px; margin-right: 15px; transition: 0.2s;}
+        .logo a:hover { color: #333; }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Form Column */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1e90ff;
+            box-shadow: 0 0 0 3px rgba(30,144,255,0.1);
+        }
+
+        /* Picture Column */
+        .picture-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 1px dashed #ddd;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 10px 25px rgba(30,144,255,0.2);
+            border: 4px solid white;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .file-upload-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .btn {
+            background: #1e90ff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #1e90ff;
+            border: 2px solid #1e90ff;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30,144,255,0.3);
+        }
+
+        .btn-success { background: #2ed573; }
+        .btn-success:hover { box-shadow: 0 5px 15px rgba(46,213,115,0.3); }
+
+        .btn-danger { background: #ff4757; }
+        .btn-danger:hover { box-shadow: 0 5px 15px rgba(255,71,87,0.3); }
+
+        .notification {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        .notification.success { background: #e0f8e9; color: #2ed573; display: block; }
+        .notification.error { background: #ffeaea; color: #ff4757; display: block; }
+
+        .profession-panel {
+            display: none;
+            margin-top: 10px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+        }
+        .profession-panel.open { display: block; }
+        .profession-toggle {
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px 14px;
+            background: #f0f7ff;
+            border: 1px dashed #1e90ff;
+            color: #0369a1;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .profession-toggle:hover { background: #e0f2fe; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <a href="/">&larr; Home</a>
+                Profile Settings
+            </div>
+            <a href="/api/logout" class="btn btn-danger">Log Out</a>
+        </div>
+        
+        <div class="profile-grid">
+            <!-- Left Column: Details Form -->
+            <div class="details-section">
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" disabled style="background:#e9ecef; cursor:not-allowed;" title="Email cannot be changed">
+                    </div>
+                    <div class="form-group">
+                        <label>Your professional role</label>
+                        <div id="professionSummary" style="font-size:14px; color:#555; margin-bottom:6px;">
+                            <span id="professionDisplay">Not set</span>
+                        </div>
+                        <button type="button" class="profession-toggle" id="professionToggle">Choose professional role</button>
+                        <div id="professionPanel" class="profession-panel">
+                            <label style="font-size:13px; color:#666; margin-bottom:8px; display:block;">Select how you identify (you can change this anytime)</label>
+                            <select id="profession">
+                                <option value="">— Select —</option>
+                                <option value="Student">Student</option>
+                                <option value="Doctor">Doctor</option>
+                                <option value="Patient">Patient</option>
+                                <option value="Researcher">Researcher</option>
+                                <option value="Educator">Educator</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:15px;">
+                        <div class="form-group" style="flex:1;">
+                            <label>Date of Birth</label>
+                            <input type="date" id="dob">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Gender</label>
+                            <select id="gender">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="country" placeholder="Your Country">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Basic Details (Bio)</label>
+                        <textarea id="bio" rows="4" placeholder="Tell us a little about yourself, your research interests..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="width:100%; font-size:16px; padding:12px;">Save Changes</button>
+                    <div id="profileMsg" class="notification"></div>
+                </form>
+            </div>
+
+            <!-- Right Column: Profile Picture -->
+            <div class="picture-section">
+                <img src="" alt="Profile" id="profilePicPreview" class="profile-image">
+                <h3 style="font-size:18px; margin-bottom:5px; color:#333;" id="displayName">User</h3>
+                <p style="font-size:13px; color:#888; margin-bottom:20px;" id="displayRole">Not set</p>
+                
+                <div class="file-upload-wrapper">
+                    <button class="btn btn-outline">Change Picture</button>
+                    <input type="file" id="profilePicInput" accept="image/png, image/jpeg, image/webp, image/gif">
+                </div>
+                <div id="picMsg" class="notification" style="width:100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatProfessionLabel(p) {
+            if (!p) return 'Not set';
+            if (p === 'Doctor') return '🩺 Doctor';
+            return p;
+        }
+
+        document.getElementById('professionToggle').addEventListener('click', () => {
+            const panel = document.getElementById('professionPanel');
+            panel.classList.toggle('open');
+        });
+
+        document.getElementById('profession').addEventListener('change', function () {
+            document.getElementById('professionDisplay').innerText = formatProfessionLabel(this.value);
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load Profile Data
+            try {
+                const res = await fetch('/api/profile_data');
+                const data = await res.json();
+                
+                if(res.ok) {
+                    document.getElementById('name').value = data.name || '';
+                    document.getElementById('email').value = data.email || '';
+                    const prof = data.profession || '';
+                    document.getElementById('profession').value = prof;
+                    document.getElementById('professionDisplay').innerText = formatProfessionLabel(prof);
+                    document.getElementById('dob').value = data.dob || '';
+                    document.getElementById('gender').value = data.gender || '';
+                    document.getElementById('country').value = data.country || '';
+                    document.getElementById('bio').value = data.bio || '';
+                    
+                    document.getElementById('displayName').innerText = data.name || 'User';
+                    document.getElementById('displayRole').innerHTML = formatProfessionLabel(prof);
+                    
+                    // Set Image
+                    const imgEl = document.getElementById('profilePicPreview');
+                    if(data.profile_pic) {
+                        imgEl.src = data.profile_pic;
+                    } else {
+                        imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'User')}&background=1e90ff&color=fff&rounded=true&size=150`;
+                    }
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch(e) {
+                console.error('Failed to load profile', e);
+            }
+        });
+
+        // Submit Text Data
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('profileMsg');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+            
+            const payload = {
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                country: document.getElementById('country').value,
+                bio: document.getElementById('bio').value,
+                profession: document.getElementById('profession').value,
+            };
+
+            try {
+                const res = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                msg.className = 'notification'; // reset
+                if(res.ok && data.success) {
+                    msg.classList.add('success');
+                    msg.innerText = 'Profile updated securely!';
+                    document.getElementById('displayName').innerText = payload.name;
+                    document.getElementById('displayRole').innerHTML = formatProfessionLabel(payload.profession);
+                    document.getElementById('professionDisplay').innerText = formatProfessionLabel(payload.profession);
+                } else {
+                    msg.classList.add('error');
+                    msg.innerText = data.error || 'Failed to update';
+                }
+            } catch(err) {
+                msg.className = 'notification error';
+                msg.innerText = 'Network error occurred';
+            }
+            btn.disabled = false;
+            btn.innerText = 'Save Changes';
+        });
+
+        // Submit Profile Picture automatically on select
+        document.getElementById('profilePicInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const msg = document.getElementById('picMsg');
+            msg.className = 'notification'; // reset
+            msg.innerText = 'Uploading...';
+            msg.style.display = 'block';
+            msg.style.color = '#888';
+            msg.style.background = 'transparent';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/profile/picture', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if(res.ok && data.success) {
+                    msg.className = 'notification success';
+                    msg.innerText = 'Picture updated!';
+                    document.getElementById('profilePicPreview').src = data.profile_pic;
+                } else {
+                    msg.className = 'notification error';
+                    msg.innerText = data.error || 'Upload failed';
+                }
+            } catch(err) {
+                msg.className = 'notification error';
+                msg.innerText = 'Network upload error';
+            }
+        });
+    </script>
+</body>
+</html>
